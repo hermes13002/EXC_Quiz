@@ -1,0 +1,196 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MyQuizApp());
+}
+
+class MyQuizApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: QuizScreen(),
+    );
+  }
+}
+
+class QuizScreen extends StatefulWidget {
+  @override
+  _QuizScreenState createState() => _QuizScreenState();
+}
+
+class _QuizScreenState extends State<QuizScreen> {
+  int _currentIndex = 0; // Index of the current question
+  int _score = 0; // User's score
+  late Timer _timer;
+
+  List<Map<String, dynamic>> _questions = [
+    {
+      'question': 'What is the capital of France?',
+      'options': ['Berlin', 'Madrid', 'Paris', 'Rome'],
+      'correctAnswer': 'Paris',
+    },
+    // Add more questions for different subjects
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Quiz App'),
+      ),
+      body: _currentIndex < _questions.length
+          ? QuizWidget(
+              questionData: _questions[_currentIndex],
+              onAnswerSelected: _handleAnswer,
+              onTimerExpired: _moveToNextQuestion,
+            )
+          : ResultScreen(score: _score, totalQuestions: _questions.length),
+    );
+  }
+
+  void _handleAnswer(String selectedAnswer) {
+    _timer.cancel(); // Cancel the timer when the user answers
+    setState(() {
+      if (selectedAnswer == _questions[_currentIndex]['correctAnswer']) {
+        _score++;
+      }
+      _currentIndex++;
+      _startTimer(); // Start the timer for the next question
+    });
+  }
+
+  void _startTimer() {
+    const Duration questionDuration = Duration(seconds: 10); // Adjust timer duration as needed
+    _timer = Timer(questionDuration, _moveToNextQuestion);
+  }
+
+  void _moveToNextQuestion() {
+    _timer.cancel(); // Cancel the timer before moving to the next question
+    setState(() {
+      _currentIndex++;
+      if (_currentIndex < _questions.length) {
+        _startTimer(); // Start the timer for the next question
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel(); // Cancel the timer to avoid memory leaks
+    super.dispose();
+  }
+}
+
+class QuizWidget extends StatelessWidget {
+  final Map<String, dynamic> questionData;
+  final Function(String) onAnswerSelected;
+  final VoidCallback onTimerExpired;
+
+  QuizWidget({
+    required this.questionData,
+    required this.onAnswerSelected,
+    required this.onTimerExpired,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          questionData['question'],
+          style: TextStyle(fontSize: 20),
+        ),
+        SizedBox(height: 20),
+        Column(
+          children: (questionData['options'] as List<String>).map((option) {
+            return ElevatedButton(
+              onPressed: () {
+                onAnswerSelected(option);
+              },
+              child: Text(option),
+            );
+          }).toList(),
+        ),
+        SizedBox(height: 10),
+        CountdownTimer(onTimerExpired: onTimerExpired),
+      ],
+    );
+  }
+}
+
+class CountdownTimer extends StatefulWidget {
+  final VoidCallback onTimerExpired;
+
+  CountdownTimer({required this.onTimerExpired});
+
+  @override
+  _CountdownTimerState createState() => _CountdownTimerState();
+}
+
+class _CountdownTimerState extends State<CountdownTimer> {
+  late Timer _timer;
+  int _secondsRemaining = 10; // Initial timer duration
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    const oneSecond = Duration(seconds: 1);
+    _timer = Timer.periodic(oneSecond, (Timer timer) {
+      if (_secondsRemaining == 0) {
+        timer.cancel(); // Cancel the timer when it reaches zero
+        widget.onTimerExpired();
+      } else {
+        setState(() {
+          _secondsRemaining--;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text('Time remaining: $_secondsRemaining seconds');
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel(); // Cancel the timer to avoid memory leaks
+    super.dispose();
+  }
+}
+
+class ResultScreen extends StatelessWidget {
+  final int score;
+  final int totalQuestions;
+
+  ResultScreen({required this.score, required this.totalQuestions});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Quiz Completed!',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 20),
+          Text('Your Score: $score out of $totalQuestions'),
+        ],
+      ),
+    );
+  }
+}

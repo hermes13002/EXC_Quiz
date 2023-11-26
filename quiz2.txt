@@ -1,0 +1,68 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: SplashScreen(),
+    );
+  }
+}
+
+class SplashScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // Add your splash screen UI here
+    return Scaffold(
+      body: Center(
+        child: Text('Splash Screen'),
+      ),
+    );
+  }
+}
+
+class QuizScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // Add your quiz UI here
+    return Scaffold(
+      body: Center(
+        child: Text('Quiz Screen'),
+      ),
+    );
+  }
+}
+
+class ResultsScreen extends StatelessWidget {
+  final int score;
+
+  ResultsScreen(this.score);
+
+  @override
+  Widget build(BuildContext context) {
+    // Add your results screen UI here
+    return Scaffold(
+      body: Center(
+        child: Text('Results Screen\nScore: $score'),
+      ),
+    );
+  }
+}
+
+class MyAppState extends State<MyApp> {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: SplashScreen(),
+      routes: {
+        '/quiz': (context) => QuizScreen(),
+        '/results': (context) =>
+            ResultsScreen(10), // Replace 10 with the actual score
+      },
+    );
+  }
+}
